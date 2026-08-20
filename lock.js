@@ -9,10 +9,14 @@
    한 번 연 기기는 암호를 저장해 두고 다음부터 바로 들어간다.
    ========================================================= */
 window.GIMLock = (function () {
-  /* 저장 키를 도구마다 나누지 않고 하나로 쓴다.
-     도구가 모두 hongyul67-cpu.github.io 한 곳에 있어 localStorage 가 공유되므로,
-     어느 도구에서든 한 번 열면 나머지도 그 기기에서는 그냥 열린다. */
-  var LS_PW = 'hong_pw_v1';
+  /* 저장 키가 두 개다.
+       LS_OWN    이 도구에서 성공한 암호
+       LS_SHARED 도구 전체 공용 — 도구가 모두 hongyul67-cpu.github.io 한 곳에 있어
+                 localStorage 를 공유하므로, 어디서든 한 번 열면 나머지도 그냥 열린다.
+     실패했을 때 공용 키는 지우지 않는다. 이 도구에서 안 맞는 암호가
+     다른 도구에서는 맞을 수 있어, 지우면 남의 기억까지 날리게 된다. */
+  var LS_OWN = 'gim_pw_v1';
+  var LS_SHARED = 'hong_pw_v1';
   var key = null;          // 데이터·도판이 같은 키를 쓴다
   var imgCache = {};       // 이름 → blob URL (한 번 푼 도판은 다시 풀지 않는다)
   var onOpen = null;
@@ -52,7 +56,7 @@ window.GIMLock = (function () {
           window.DRAWN_FIGS = o.DRAWN_FIGS;
           window.LESSON_UNITS = o.LESSON_UNITS;
           window.FIGS = o.FIGS;
-          try { localStorage.setItem(LS_PW, pw); } catch (e) {}
+          try { localStorage.setItem(LS_OWN, pw); localStorage.setItem(LS_SHARED, pw); } catch (e) {}
           var ov = $('gimLock'); if (ov) ov.remove();
           document.body.classList.remove('locked');
           if (onOpen) onOpen();
@@ -61,7 +65,7 @@ window.GIMLock = (function () {
       })
       .catch(function () {
         key = null;
-        try { localStorage.removeItem(LS_PW); } catch (e) {}
+        try { localStorage.removeItem(LS_OWN); } catch (e) {}   // 공용 키는 건드리지 않는다
         if (!quiet) { say('암호가 맞지 않습니다.', 'bad'); shake(); }
         else { say('', 'dim'); }
         var pwEl = $('gimPw'); if (pwEl) { pwEl.value = ''; pwEl.focus(); }
@@ -111,6 +115,7 @@ window.GIMLock = (function () {
     '#gimPw{width:100%;box-sizing:border-box;padding:14px 16px;font-size:17px;text-align:center;' +
     'letter-spacing:2px;border-radius:12px;border:1px solid #4a3878;background:#120c22;color:#efe9ff;outline:none}' +
     '#gimPw:focus{border-color:#8a6dff;box-shadow:0 0 0 3px rgba(138,109,255,.22)}' +
+    '#gimPw::placeholder{color:#5d5285;letter-spacing:0;font-size:15px}' +
     '#gimGo{width:100%;margin-top:12px;padding:14px;font-size:16px;font-weight:800;border:0;border-radius:12px;' +
     'background:linear-gradient(135deg,#8a6dff,#5b3fd6);color:#fff;cursor:pointer}' +
     '#gimGo:active{transform:translateY(1px)}' +
@@ -124,7 +129,7 @@ window.GIMLock = (function () {
     '<div class="ico">🔒</div>' +
     '<h1>공업 일반 마스터</h1>' +
     '<p>수업용 자료입니다.<br>선생님께 받은 암호를 넣어 주세요.</p>' +
-    '<input id="gimPw" type="password" inputmode="text" autocomplete="current-password" placeholder="암호" aria-label="암호">' +
+    '<input id="gimPw" type="password" inputmode="text" autocomplete="current-password" placeholder="이름번호 총 8자" aria-label="암호">' +
     '<button id="gimGo">열기</button>' +
     '<div id="gimMsg"></div>' +
     '<div class="note">한 번 열면 이 기기에서는 다음부터 바로 들어갑니다.</div>' +
@@ -138,13 +143,23 @@ window.GIMLock = (function () {
     document.body.classList.add('locked');
     $('gimGo').onclick = function () { open($('gimPw').value.trim()); };
     $('gimPw').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('gimGo').click(); });
-    var saved = null;
-    try { saved = localStorage.getItem(LS_PW); } catch (e) {}
-    if (saved) open(saved, true).then(function (ok) { if (!ok) $('gimPw').focus(); });
-    else $('gimPw').focus();
+    /* 이 도구에서 쓰던 것 → 공용 것 순서로 조용히 시도한다 */
+    var tries = [];
+    try {
+      var a = localStorage.getItem(LS_OWN), b = localStorage.getItem(LS_SHARED);
+      if (a) tries.push(a);
+      if (b && b !== a) tries.push(b);
+    } catch (e) {}
+    (function next(i) {
+      if (i >= tries.length) { $('gimPw').focus(); return; }
+      open(tries[i], true).then(function (ok) { if (!ok) next(i + 1); });
+    })(0);
   }
 
-  function forget() { try { localStorage.removeItem(LS_PW); } catch (e) {} location.reload(); }
+  function forget() {
+    try { localStorage.removeItem(LS_OWN); localStorage.removeItem(LS_SHARED); } catch (e) {}
+    location.reload();
+  }
 
   return { mount: mount, open: open, img: img, fill: fill, forget: forget };
 })();
