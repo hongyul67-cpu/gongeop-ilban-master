@@ -133,7 +133,8 @@ window.GIMLock = (function () {
      코드표 파일을 뒤질 필요 없이 여기서 읽어 학생에게 불러 주면 된다. */
   function weekCode(ms, mon) {
     return crypto.subtle.importKey('raw', ms, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-      .then(function (k) { return crypto.subtle.sign('HMAC', k, new TextEncoder().encode('GIMW|' + iso(mon))); })
+      /* 접두어는 암호문 안(info.prefix)에서 온다 — 도구가 모두 같은 값을 쓴다 */
+      .then(function (k) { return crypto.subtle.sign('HMAC', k, new TextEncoder().encode((info.prefix || 'HONGW|') + iso(mon))); })
       .then(function (sig) {
         var u = new Uint8Array(sig);
         var n = ((u[0] << 24) >>> 0) + (u[1] << 16) + (u[2] << 8) + u[3];
