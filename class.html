@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>공업 일반 · 전자칠판 수업자료</title>
-<script src="lock.js?v=78088761"></script>
+<script src="lock.js?v=0ebc09de"></script>
 <style>
 :root{
   --bg:#070d1c; --panel:#121c30; --panel2:#182643; --line:#2c3f66;
@@ -105,9 +105,11 @@ button{font-family:inherit;cursor:pointer;border:none;color:inherit}
 .lcard .ln{flex-shrink:0;background:var(--si2);color:#04203f;font-weight:900;border-radius:12px;
   padding:6px 12px;font-size:clamp(13px,1.15vw,19px)}
 .lcard .m{flex:1;min-width:0}
-.lcard .ti{font-size:clamp(17px,1.7vw,27px);font-weight:900;line-height:1.25}
-.lcard .go{font-size:clamp(12px,1.05vw,17px);color:var(--gold);font-weight:800;margin-top:5px;line-height:1.4}
-.lcard .cnt{font-size:clamp(11.5px,1vw,16px);color:var(--dim);font-weight:800;margin-top:6px}
+/* span 이라 기본이 inline 이다. 카드가 좁아지면 제목·목표·장수가 한 줄로 붙어 버려
+   "…설명할 수 있다슬라이드 6장" 처럼 읽힌다. 각각 제 줄을 갖게 한다. */
+.lcard .ti{display:block;font-size:clamp(17px,1.7vw,27px);font-weight:900;line-height:1.25}
+.lcard .go{display:block;font-size:clamp(12px,1.05vw,17px);color:var(--gold);font-weight:800;margin-top:5px;line-height:1.4}
+.lcard .cnt{display:block;font-size:clamp(11.5px,1vw,16px);color:var(--dim);font-weight:800;margin-top:6px}
 
 /* ═══ 교사용 설명 노트 ═══ */
 #note{position:fixed;left:0;right:0;bottom:var(--barh,88px);z-index:55;display:none;
@@ -140,6 +142,11 @@ button{font-family:inherit;cursor:pointer;border:none;color:inherit}
 .sw.on{border-color:#fff;transform:scale(1.14)}
 .sp{flex:1;min-width:6px}
 @media (max-width:900px){ .bbtn.main{min-width:150px} .bbtn{padding:10px 12px} }
+/* 차시 카드의 준비물 */
+.lcard .ref{display:block;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);
+  font-size:calc(clamp(11px,.86vw,17px) * var(--k));color:var(--dim);line-height:1.65;text-align:left}
+.lcard .ref b{color:var(--si);font-weight:800}
+.refroot{color:var(--gold);font-weight:700}
 .figfail{color:#ff9a9a;font-size:15px;font-weight:700;text-align:center;padding:14px}
 /* 도판 크게 보기 — 두 장을 겹쳐 놓으면 각각 24~40%까지 줄어 교실 뒤에서 안 읽힌다.
    눌러서 화면 가득 띄운다. 다시 누르거나 Esc 로 닫는다. */
@@ -246,6 +253,21 @@ function renderMenu(){
   });
 }
 /* ─── 홈: 차시 목록 ─── */
+/* 수업 폴더에 있는 학습지·PPT·영상을 차시 카드에 적어 둔다.
+   어느 차시에 무엇을 쓰는지 매번 폴더를 뒤지지 않게 하려는 것이다.
+   파일은 선생님 PC 에만 있으므로 링크가 아니라 '이름'만 보여 준다.
+   2022 개정 교과서가 기준이고, 이건 참고 자료다. */
+var REF_ROOT = '업무폴더 › 01_수업 › 2025이전_수업 › 공업일반(선두)';
+function refHTML(r){
+  if(!r) return '';
+  var it=[];
+  if(r.sheet) it.push('<b>📄 학습지</b> '+r.sheet+'.hwpx');
+  if(r.ppt&&r.ppt.length) it.push('<b>📊 PPT</b> '+r.ppt.join(', ')+'.pptx');
+  if(r.vid&&r.vid.length) it.push('<b>🎬 영상</b> '+r.vid.length+'개 — '+r.vid[0]+(r.vid.length>1?' 외':''));
+  if(r.img) it.push('<b>🖼 참고 이미지</b> '+r.img);
+  if(!it.length) return '';
+  return '<span class="ref">'+it.join('<br>')+'</span>';
+}
 function renderLessons(u){
   ui=u;
   var un=UNITS[u], h='<button class="mback" id="bUnits">◀ 단원 목록</button><div class="lgrid">';
@@ -255,13 +277,14 @@ function renderLessons(u){
        '<span class="ti">'+L.title+'</span>'+
        (L.goal?'<span class="go">🎯 '+L.goal+'</span>':'')+
        '<span class="cnt">슬라이드 '+L.slides.length+'장 · 빈칸 '+blanksOf(L.slides)+'개</span>'+
+       refHTML(L.ref)+
        '</span></button>';
   });
   h+='</div>';
   $('ugrid').innerHTML=h;
   $('ugrid').className='';
   $('mtitle').textContent=un.icon+' 단원 '+un.no+'. '+un.title;
-  $('msub').textContent='차시를 고르세요';
+  $('msub').innerHTML='차시를 고르세요 &nbsp;·&nbsp; <span class="refroot">준비물 파일은 '+REF_ROOT+' 안에 있습니다</span>';
   $('mhelp').classList.add('hidden');
   $('bUnits').onclick=renderMenu;
   Array.prototype.forEach.call(document.querySelectorAll('.lcard'),function(b){
