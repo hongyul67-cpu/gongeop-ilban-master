@@ -18,6 +18,11 @@ body{background:radial-gradient(1200px 700px at 50% -10%,#122448 0%,var(--bg) 60
   color:var(--tx);font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;
   line-height:1.6;padding-bottom:40px;-webkit-text-size-adjust:100%}
 .wrap{max-width:860px;margin:0 auto;padding:16px 15px 0}
+  /* 가운데 내용을 큰 화면에서 70% 폭으로 (수업모드·전자칠판·모바일·인쇄는 그대로) */
+  @media screen and (min-width:1024px){
+    body:not(.cm-on):not(.bd-open):not(.board):not(.teach-open) .wrap{min-width:min(70vw,1600px)}
+  }
+
 button{font-family:inherit}
 .hidden{display:none!important}
 
