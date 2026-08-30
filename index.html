@@ -45,7 +45,7 @@ button{font-family:inherit}
 .hero .bar>i{display:block;height:100%;width:0;border-radius:99px;
   background:linear-gradient(90deg,var(--cy),var(--bl));transition:width .6s cubic-bezier(.2,.7,.3,1)}
 .hero .pct{font-size:13px;font-weight:900;color:var(--cy);min-width:38px;text-align:right}
-.hero .spark{position:absolute;right:-10px;top:-10px;font-size:90px;opacity:.08;transform:rotate(-12deg)}
+.hero .spark{position:absolute;right:-10px;top:-10px;font-size:90px;opacity:.08;transform:rotate(-12deg);pointer-events:none}
 
 /* ── 랭크(계급) ── */
 .rank{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#101d38,#0b1428);
@@ -86,9 +86,11 @@ button{font-family:inherit}
 .ucard:active{transform:translateY(0)}
 .ucard .ic{font-size:30px;width:44px;text-align:center;flex-shrink:0}
 .ucard .m{flex:1;min-width:0}
-.ucard .no{font-size:11px;font-weight:900;color:var(--cy);letter-spacing:.5px}
-.ucard .ti{font-size:16.5px;font-weight:900;margin-top:1px}
-.ucard .de{font-size:12px;color:var(--tx3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* span 이라 기본이 inline 이다. block 으로 바꾸지 않으면 아래 margin-top·말줄임·max-width 가
+   전부 무시되어 단원 이름·설명이 한 줄에 붙고, 폰(≤480)에서는 설명이 카드 밖으로 삐져나간다. */
+.ucard .no{display:block;font-size:11px;font-weight:900;color:var(--cy);letter-spacing:.5px}
+.ucard .ti{display:block;font-size:16.5px;font-weight:900;margin-top:1px}
+.ucard .de{display:block;font-size:12px;color:var(--tx3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ucard .rt{text-align:right;flex-shrink:0}
 .ucard .ring{font-size:12px;font-weight:900;color:var(--tx2)}
 .ucard .ring b{color:var(--gr)}
@@ -437,7 +439,8 @@ function goBack(){
 /* ══════════════ 랭크 카드 ══════════════ */
 function rankCardHTML(){
   var p=totalRP(), t=tierOf(p), nx=nextTier(p);
-  var solved=0; for(var k in rp){ if(rp.hasOwnProperty(k)) solved++; }
+  /* '__exam' 은 종합시험 기록이라 주제가 아니다. 세면 20개 주제가 21개처럼 보인다. */
+  var solved=0; for(var k in rp){ if(rp.hasOwnProperty(k) && k!=='__exam') solved++; }
   var h='<div class="rank">'+
     '<span class="emb">'+tierBadge(t,68)+'</span>'+
     '<span class="m">'+
@@ -720,7 +723,7 @@ function renderQ(){
   T.answered=false;
   var h='';
   if(!T.exam) h+='<div class="hud-wrap"><div id="hud"></div></div>';   // 시험 중 점수 감춤
-  h+='<div class="climb"><div class="lab"><span>진행</span><span>'+(T.i)+' / '+T.qs.length+' 통과</span></div>'+climbSVG(T.i,T.qs.length)+'</div>';
+  h+='<div class="climb"><div class="lab"><span>진행</span><span>'+(T.i)+' / '+T.qs.length+' 문항</span></div>'+climbSVG(T.i,T.qs.length)+'</div>';
   if(T.exam) h+='<div class="examrule">🧪 <b>종합시험</b> — 보기를 누르면 바로 다음 문제로 넘어갑니다. '+
      '정답·해설은 <b>끝까지 푼 뒤</b> 오답노트에서 확인해요.</div>';
   h+='<div class="q-card"><div class="q-no">Q'+(T.i+1)+' / '+T.qs.length+'</div>'+
