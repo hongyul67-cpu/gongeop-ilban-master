@@ -18,9 +18,9 @@ body{background:radial-gradient(1200px 700px at 50% -10%,#122448 0%,var(--bg) 60
   color:var(--tx);font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;
   line-height:1.6;padding-bottom:40px;-webkit-text-size-adjust:100%}
 .wrap{max-width:860px;margin:0 auto;padding:16px 15px 0}
-  /* 가운데 내용을 큰 화면에서 70% 폭으로 (수업모드·전자칠판·모바일·인쇄는 그대로) */
+  /* 가운데 내용을 큰 화면에서 70% 폭으로 (수업 슬라이드·모바일·인쇄는 그대로) */
   @media screen and (min-width:1024px){
-    body:not(.cm-on):not(.bd-open):not(.board):not(.teach-open) .wrap{min-width:min(70vw,1600px)}
+    body:not(.cm-on):not(.bp-open):not(.board):not(.teach-open) .wrap{min-width:min(70vw,1600px)}
   }
 
 button{font-family:inherit}
@@ -268,27 +268,15 @@ details.more[open]>summary{border-bottom:1px dashed #33507f}
   <!-- 결과 -->
   <section id="result" class="hidden"></section>
 
-  <!-- 수업 슬라이드 (예전 class.html) -->
-  <section id="board" class="hidden">
-    <p style="color:var(--tx2);font-size:13.5px;margin:0 0 14px">
-      전자칠판·프로젝터로 앞에서 끌고 가는 화면입니다.
-      요점의 <b>빈칸을 눌러</b> 답을 드러내고, <b>발문</b>으로 이어 가세요.
-      (넘기기: <kbd>←</kbd> <kbd>→</kbd> 키 또는 화면 아래 버튼)
-    </p>
-    <div id="boardHome"></div>
-  </section>
-
 <style>
-/* 수업 슬라이드의 도해 높이 제한 — 이 저장소에만 두는 규칙.
-   board.js 는 사진(<img>)만 38vh 로 묶고 직접 그린 SVG 는 안 묶는다.
-   교과서 도해 중 세로가 긴 것이 있어 혼자 화면을 다 먹으므로 같은 기준으로 맞춘다.
-   ※ 공용 board.js 는 건드리지 않는다(다른 도구의 도해까지 작아지므로). */
-.bd-figsvg svg{max-height:38vh;width:100%;height:auto;display:block;margin:0 auto}
-.bd-figsvg img{max-height:38vh;width:auto;max-width:100%;display:block;margin:0 auto}
-/* 교과서 도판 — 흰 바탕 그림이라 밝은 카드 위에 올린다 (예전 class.html 에 있던 규칙) */
+/* 수업 슬라이드 안의 교과서 도판 — 이 저장소에만 두는 규칙.
+   공용 뷰어(board-pro.js)는 그림칸(.bp-fig)에 <img> 한 장을 기준으로 크기를 잡는데,
+   이 교과는 한 장에 도판을 두 장까지 겹쳐 쓰므로 여기서 따로 묶는다.
+   ※ 공용 board-pro.js 는 건드리지 않는다(다른 도구의 도해까지 작아지므로). */
 .figstack{display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center}
 .figstack img.bookfig{max-width:100%;max-height:38vh;object-fit:contain;background:#fff;border-radius:12px;display:block}
 .figstack img.bookfig:not(:only-child){max-height:24vh}
+#bp .bp-fig .figstack{width:100%}
 </style>
 </div>
 
@@ -340,7 +328,7 @@ details.more[open]>summary{border-bottom:1px dashed #33507f}
 })();
 </script>
 <script src="lock.js?v=0ebc09de"></script>
-<script src="board.js"></script>
+<script src="https://hongyul67-cpu.github.io/links/board-pro.js"></script>
 <script>
 "use strict";
 /* ══════════════ 상태 ══════════════ */
@@ -421,7 +409,7 @@ function hasRC(){ return !!(window.ResultCollector && ResultCollector.config && 
 /* ══════════════ 라우팅 ══════════════ */
 var stack=[];    // 뒤로가기용
 function show(id){
-  ["home","unit","learn","test","result","board"].forEach(function(s){
+  ["home","unit","learn","test","result"].forEach(function(s){
     document.getElementById(s).classList.toggle("hidden", s!==id);
   });
   document.getElementById("backBtn").classList.toggle("hidden", id==="home");
@@ -506,7 +494,7 @@ function renderHome(){
 
   h+='<div class="foot">'+
      '<span class="tag">수업자료</span><span class="tag">개념게임</span><span class="tag">과제제출</span><br>'+
-     '<b>선생님께</b> — 수업(전자칠판)용은 <button type="button" onclick="openBoard()" style="background:none;border:0;padding:0;color:var(--am);font-weight:900;font-size:inherit;font-family:inherit;cursor:pointer;text-decoration:underline">📽️ 수업자료 열기</button> · '+
+     '<b>선생님께</b> — 앞에서 끌고 가는 화면은 <button type="button" onclick="openBoard()" style="background:none;border:0;padding:0;color:var(--am);font-weight:900;font-size:inherit;font-family:inherit;cursor:pointer;text-decoration:underline">📽️ 수업 슬라이드 열기</button> · '+
      '결과 제출(과제)은 <b>?rc=선생님_주소</b> 링크로 열어야 실제로 보내집니다. '+
      (hasRC()?'현재 <b style="color:var(--gr)">제출 연결됨 ✓</b>':'지금은 연습 모드 — 제출 버튼은 보이지만 누르면 안내만 나옵니다.')+
      '<br><b>학생</b> — 배우기로 개념을 익히고, 테스트로 스스로 점검하세요. 오른쪽 아래에서 소리도 켤 수 있어요.'+
@@ -952,19 +940,18 @@ function mountSubmit(correct,total,pct,dur){
 /* ══════════════ 수업 슬라이드 ══════════════
    예전에는 class.html 이 따로 있었지만, 겉으로 보이는 입구를 index 하나로 모으면서
    이 안으로 들어왔다. 원고는 잠금 해제 때 받아 오는 window.LESSON_UNITS,
-   화면은 board.js(모든 도구 공용)가 맡는다. */
-var boardReady=false;
+   화면은 공용 뷰어 links/board-pro.js 가 맡는다(저장소에 사본을 두지 않는다). */
+var boardMenu=null;
 
-/* 원고를 board.js 가 읽는 형태로 펼친다.
-   이 교과는 단원(5) → 차시(20) → 슬라이드(118) 세 겹이라,
-   board.js 의 tabs 기능으로 단원을 탭, 차시를 목록으로 놓는다.
-   (class.html 이 하던 두 단계 고르기를 그대로 옮긴 것)
+/* 원고를 board-pro.js 가 읽는 형태로 펼친다.
+   이 교과는 단원(5) → 차시(20) → 슬라이드(118) 세 겹인데,
+   공용 뷰어의 첫 화면은 카드 한 벌이라 **차시를 카드로** 놓고 단원은 카드 설명에 적는다.
 
    ⚠ 단원 목록을 window.UNITS 로 내보내면 안 된다 — 문제 단원이 거기 들어 있다.
 
    · 교과서 도판(s.img)은 암호문이라 <img data-enc> 자리만 만들어 두고
      나중에 GIMLock 이 풀어 넣는다 (watchFigures 참고).
-   · 교사용 설명(s.note)은 board.js 의 해설 자리(anse)에 넣어 마지막 단계에서 연다. */
+   · 교사용 설명(s.note)은 뷰어의 해설 자리(anse)에 넣어 마지막 단계에서 연다. */
 function figHTML(s, FG){
   if(s.fig && FG[s.fig]) return FG[s.fig];
   if(s.img && s.img.length)
@@ -980,33 +967,37 @@ function noteHTML(nt){
     : nt;
 }
 function buildDeck(){
-  var LESSON=[], TABS=[], FG=window.FIGS||{};
+  var ALL=[], MENU=[], FG=window.FIGS||{};
   (window.LESSON_UNITS||[]).forEach(function(u){
-    var units=[];
     (u.lessons||[]).forEach(function(L){
-      var idx=[];
-      (L.slides||[]).forEach(function(s){
-        idx.push(LESSON.length);
-        LESSON.push({
+      var deck=(L.slides||[]).map(function(s){
+        return {
           u:'단원 '+u.no+' · '+L.no+'차시 '+L.title,
           t:s.t, svg:figHTML(s,FG), cap:s.cap, pts:s.pts, ask:s.ask,
           anse:noteHTML(s.note)
-        });
+        };
       });
-      units.push({ name:L.no+'차시 · '+L.title, idx:idx });
-    });
-    TABS.push({
-      label:(u.icon?u.icon+' ':'')+u.no+'. '+u.title,
-      units:units,
-      hint:'차시를 고르면 그 차시 슬라이드만 이어서 넘깁니다. 요점의 <b>빈칸</b>을 눌러 학생들과 함께 답을 채우세요.'
+      deck.forEach(function(x){ ALL.push(x); });
+      MENU.push({
+        icon:(u.icon||'📘'), title:L.no+'차시 · '+L.title,
+        desc:'단원 '+u.no+' '+u.title+' · 슬라이드 '+deck.length+'장'+
+             (L.goal?'<br>'+L.goal:''),
+        run:{ kind:'lesson', deck:deck }
+      });
     });
   });
-  window.LESSON=LESSON;
-  window.LESSON_TABS=TABS;
+  MENU.push({ icon:'📚', wide:true, title:'전체 이어서 ('+ALL.length+'장)',
+              desc:'Ⅰ단원 1차시부터 끝까지 한 줄로 넘깁니다',
+              run:{ kind:'lesson', deck:ALL } });
+  MENU.push({ icon:'⬜', wide:true, title:'빈 칠판',
+              desc:'슬라이드 없이 판서만', run:{ kind:'blank' } });
+  return MENU;
 }
 
+/* 교과서 도판은 암호문이라 자리(<img data-enc>)만 있고 그림이 없다.
+   슬라이드를 넘길 때마다 새로 그려지므로, 뷰어 본문을 지켜보다가 그때그때 풀어 넣는다. */
 function watchFigures(){
-  var host=document.querySelector('.bd-layer .bd-in');
+  var host=document.getElementById('bp-in');
   if(!host || host.__watched) return;
   host.__watched=true;
   try{ GIMLock.fill(host); }catch(e){}
@@ -1014,16 +1005,14 @@ function watchFigures(){
 }
 
 function openBoard(){
-  stack.push(renderHome);
-  setCrumb("📽️","수업 슬라이드","전자칠판·프로젝터용 — 선생님이 앞에서 끌고 가는 화면");
-  show("board");
-  if(!boardReady){
-    var el=document.getElementById("boardHome");
-    if(!window.Board){ el.innerHTML='<p style="color:var(--tx2)">수업자료를 불러오지 못했습니다.</p>'; return; }
-    buildDeck();
-    Board.home(el,{tabs:window.LESSON_TABS});
-    boardReady=true;
-  }
+  if(!window.BoardPro){ alert('수업 슬라이드를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.'); return; }
+  if(!boardMenu) boardMenu=buildDeck();
+  BoardPro.open({
+    title:'📽️ 공업 일반 · 수업 슬라이드',
+    sub:'요점 → <b>발문</b> → <b>교사용 설명</b>을 하나씩 엽니다. 화면 어디든 바로 판서됩니다.<br>'+
+        '요점 속 <b>파란 빈칸</b>은 눌러야 답이 보입니다.',
+    menu:boardMenu
+  });
   watchFigures();
 }
 
