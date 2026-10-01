@@ -131,6 +131,9 @@ ul.pts li b{color:#eaf1ff;background:linear-gradient(transparent 62%,rgba(34,211
 .drawnwrap{margin:2px 0 12px;background:#0a1425;border:1px solid var(--line);
   border-radius:14px;padding:8px}
 .drawnwrap svg.drawn{width:100%;height:auto;display:block}
+/* 새 그림(흰 종이) — links/fig.js 가 모양을 맡는다. 캡션만 어두운 카드에 맞춘다 */
+.newfig{margin:2px 0 12px}
+.newfig figure.fig figcaption{color:var(--tx2);font-weight:700}
 /* ── 교과서 도판 ── */
 .figwrap{margin:2px 0 12px;display:grid;gap:10px}
 img.bookfig{width:100%;height:auto;display:block;border-radius:12px;background:#fff;
@@ -327,7 +330,9 @@ details.more[open]>summary{border-bottom:1px dashed #33507f}
   }, 60);
 })();
 </script>
-<script src="lock.js?v=0ebc09de"></script>
+<!-- 공용 그림 도우미 — 새 그림(흰 종이 SVG)을 카드·슬라이드에 끼우고, 누르면 크게 -->
+<script src="https://hongyul67-cpu.github.io/links/fig.js"></script>
+<script src="lock.js?v=1522a8af"></script>
 <script src="https://hongyul67-cpu.github.io/links/board-pro.js"></script>
 <script>
 "use strict";
@@ -558,7 +563,22 @@ function startLearn(id){
   setCrumb("📖",t.title,"배우기 · "+u.no+"단원");
   renderLearn();
 }
-function blockHTML(c){
+/* 새 그림(figs.js 뒷부분 → 빌드 때 SVG 로 구워 잠금 묶음에 들어 있다).
+   그림마다 cards:['주제id|카드 제목'], slides:['슬라이드 제목'] 으로 붙을 자리를 적어 두었다. */
+var CARDFIG={}, SLIDEPIC={};
+function indexFigs(){
+  var F=window.FIGS||{};
+  Object.keys(F).forEach(function(k){
+    (F[k].cards||[]).forEach(function(c){ (CARDFIG[c]=CARDFIG[c]||[]).push(k); });
+    (F[k].slides||[]).forEach(function(s){ if(!SLIDEPIC[s]) SLIDEPIC[s]=k; });
+  });
+}
+function cardFigHTML(tid,h){
+  var ks=CARDFIG[tid+'|'+h];
+  if(!ks || !window.FIG) return '';
+  return '<div class="newfig">'+(ks.length>1?FIG.gallery(ks):FIG.figure(ks[0]))+'</div>';
+}
+function blockHTML(c,extra){
   var out='';
   /* fig = 교과서 도판(img/…). 문자열 하나 또는 배열로 넣는다.
      figcap 은 그림 아래 붙는 짧은 설명(선택). */
@@ -567,6 +587,7 @@ function blockHTML(c){
   if(c.svg && window.DRAWN_FIGS && DRAWN_FIGS[c.svg]){
     out+='<div class="drawnwrap">'+DRAWN_FIGS[c.svg]+'</div>';
   }
+  if(extra) out+=extra;
   if(c.fig){
     var figs=(typeof c.fig==='string')?[c.fig]:c.fig;
     out+='<div class="figwrap">'+ figs.map(function(f){
@@ -596,7 +617,7 @@ function renderLearn(){
   } else {
     var c=t.learn[s.i-1];
     body='<div class="learn-card"><div class="kick">개념 '+s.i+' / '+t.learn.length+'</div><h3>'+c.h+'</h3>';
-    body+=blockHTML(c);
+    body+=blockHTML(c, cardFigHTML(t.id, c.h));
     if(c.more){
       body+='<details class="more"><summary>🔎 더 알아보기'+(c.more.title?' — '+c.more.title:'')+
             '</summary><div class="more-body">'+blockHTML(c.more)+'</div></details>';
@@ -967,13 +988,17 @@ function noteHTML(nt){
     : nt;
 }
 function buildDeck(){
-  var ALL=[], MENU=[], FG=window.FIGS||{};
+  var ALL=[], MENU=[], FG=window.SLIDEFIGS||{};
   (window.LESSON_UNITS||[]).forEach(function(u){
     (u.lessons||[]).forEach(function(L){
       var deck=(L.slides||[]).map(function(s){
+        /* 새 그림이 붙은 장은 교과서 도판 대신 그것을 쓴다(도판은 그림이 없을 때 대비로 남긴다).
+           슬라이드는 빈칸 정답이 그림에 보이지 않게 늘 labels:false — 정답 이름표는 ? 로 가린다 */
+        var pk=SLIDEPIC[s.t], pic=(pk && window.FIG && FIG.has(pk)) ? FIG.svgOf(pk,{labels:false}) : '';
         return {
           u:'단원 '+u.no+' · '+L.no+'차시 '+L.title,
-          t:s.t, svg:figHTML(s,FG), cap:s.cap, pts:s.pts, ask:s.ask,
+          /* 새 그림의 캡션은 빈칸 정답을 그대로 말해 버리므로 슬라이드에서는 쓰지 않는다 */
+          t:s.t, svg:pic||figHTML(s,FG), cap:pic?'':s.cap, pts:s.pts, ask:s.ask,
           anse:noteHTML(s.note)
         };
       });
@@ -1018,6 +1043,7 @@ function openBoard(){
 
 function boot(){
   UNITS = window.UNITS;
+  indexFigs();
   UNITS.forEach(function(u){ u.topics.forEach(function(t){ TOPICS[t.id]={t:t,u:u}; }); });
   UNITS.forEach(function(u){ u.topics.forEach(function(t){ ALL_TOPICS.push(t); }); });
   MAXRP = 0;

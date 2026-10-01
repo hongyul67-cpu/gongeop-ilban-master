@@ -101,7 +101,16 @@ window.GIMLock = (function () {
             window.UNITS = o.UNITS;
             window.DRAWN_FIGS = o.DRAWN_FIGS;
             window.LESSON_UNITS = o.LESSON_UNITS;
-            window.FIGS = o.FIGS;
+            /* 슬라이드 그림칸 표 — 예전 묶음은 FIGS 라는 이름으로 들어 있었다 */
+            window.SLIDEFIGS = o.SLIDEFIGS || (o.FIGPICS ? {} : o.FIGS) || {};
+            /* 새 그림(공용 links/fig.js 형식) — 빌드 때 SVG 로 구워 둔 것을 그림 모음으로 되돌린다 */
+            var P = o.FIGPICS || {}, R = {};
+            Object.keys(P).forEach(function (k) {
+              var svg = P[k].svg;
+              R[k] = { cap: P[k].cap, cards: P[k].cards, slides: P[k].slides,
+                       draw: function () { return svg; } };
+            });
+            window.FIGS = R;
             try {
               localStorage.setItem(LS_OWN, pw);
               /* 만료되는 코드는 공용에 넣지 않는다 */
