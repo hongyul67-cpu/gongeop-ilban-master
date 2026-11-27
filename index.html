@@ -332,7 +332,7 @@ details.more[open]>summary{border-bottom:1px dashed #33507f}
 </script>
 <!-- 공용 그림 도우미 — 새 그림(흰 종이 SVG)을 카드·슬라이드에 끼우고, 누르면 크게 -->
 <script src="https://hongyul67-cpu.github.io/links/fig.js"></script>
-<script src="lock.js?v=1522a8af"></script>
+<script src="lock.js?v=42aed3f1"></script>
 <script src="https://hongyul67-cpu.github.io/links/board-pro.js"></script>
 <script>
 "use strict";
@@ -856,7 +856,7 @@ function renderResult(correct,total,stars,dur,R){
   // 버튼 — 제출은 오답노트 아래, ?rc= 링크가 아니어도 항상 보인다 (규약 §1 ③)
   h+='<div class="rbtns">';
   h+='<button class="retry" onclick="'+(T.exam?'startExam()':"startTest('"+T.id+"')")+'">↻ 다시 풀기</button>';
-  h+='<button class="home" onclick="'+(T.exam?'renderHome()':"renderUnit('"+u.key+"')")+'">'+(T.exam?'홈으로':'단원으로')+'</button>';
+  h+='<button class="home" onclick="'+(T.exam?'renderHome()':"renderUnit('"+u.key+"')")+'">'+(T.exam?'🏠 처음으로':'← 뒤로')+'</button>';
   h+='</div>';
   h+='<div id="rcAnchor"></div>';
   h+='</div>';
